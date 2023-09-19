@@ -19,8 +19,8 @@ bootmain(void)
 {
   struct elfhdr *elf;
   struct proghdr *ph, *eph;
-  void (*entry)(void);
-  uchar* pa;
+  void (*entry)(void); // pointer to a function
+  uchar* pa; // a general address
 
   elf = (struct elfhdr*)0x10000;  // scratch space
 

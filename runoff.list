@@ -5,7 +5,7 @@ memlayout.h
 defs.h
 x86.h
 asm.h
-mmu.h
+mmu.
 elf.h
 
 # entering xv6

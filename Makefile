@@ -173,6 +173,8 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
+	_hello\
+	_uniq\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -276,3 +278,7 @@ tar:
 	(cd /tmp; tar cf - xv6) | gzip >xv6-rev9.tar.gz  # the next one will be 9 (6/27/15)
 
 .PHONY: dist-test dist
+
+# My Definitions
+r:
+	make clean && make && make qemu-nox

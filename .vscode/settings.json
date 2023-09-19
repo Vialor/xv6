@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "types.h": "c",
+    "user.h": "c",
+    "stat.h": "c",
+    "fcntl.h": "c",
+    "x86.h": "c",
+    "stdbool.h": "c"
+  }
+}
