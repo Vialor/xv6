@@ -1,3 +1,5 @@
-add `_uniq\` to the end of the `UPROGS` assignment in Makefile
+Install and open Docker Desktop
 
-run `make clean && make && make qemu-nox`
+Use `docker-compose up -d --build` to run container in the background
+
+run `make r` in the container to enter the emulator
