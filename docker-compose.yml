@@ -1,0 +1,7 @@
+version: "3.8"
+services:
+  vial-xv6:
+    build: .
+    volumes:
+      # :ro readonly container change won't affect local files
+      - .:/home/a/xv6-public/
