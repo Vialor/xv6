@@ -268,6 +268,13 @@ wait(void)
   }
 }
 
+int
+nice(int n)
+{
+  // TODO: find a way to change process priority
+  return n+1;
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
