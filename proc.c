@@ -347,11 +347,38 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+
+    if(1){ // if Lottery mode
+      int curTicket = 0;
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state == RUNNABLE)
+          curTicket += p->weight;
+      }
+      ticketWinner = prng(curTicket);
+
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE)
+          continue;
+        ticketWinner -= p->weight;
+        if(ticketWinner < 0){
+          proc = p;
+          switchuvm(p);
+          p->state = RUNNING;
+          swtch(&cpu->scheduler, p->context);
+          switchkvm();
+          proc=0;
+          break;
+        }
+      }
+      release(&ptable.lock);
+      continue;
+    }
+
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
       
-      if (1) { // if Lottery mode
+      if (1) { 
         ticketWinner -= p->weight;
         if (ticketWinner >= 0){ // not winner
           continue;
