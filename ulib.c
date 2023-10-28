@@ -3,6 +3,7 @@
 #include "fcntl.h"
 #include "user.h"
 #include "x86.h"
+#define INITAL_SEED 1278210672
 
 char*
 strcpy(char *s, char *t)
@@ -102,4 +103,16 @@ memmove(void *vdst, void *vsrc, int n)
   while(n-- > 0)
     *dst++ = *src++;
   return vdst;
+}
+
+uint cur_seed = INITAL_SEED;
+
+uint prng(uint mod) // xorshift32
+{
+  uint x = cur_seed;
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 5;
+  cur_seed = x;
+	return x % mod;
 }

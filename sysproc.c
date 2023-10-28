@@ -95,6 +95,5 @@ sys_nice(void) {
   int n;
   if(argint(0, &n) < 0)
     return -1;
-  cprintf("Hello world %d\n", nice(n));
   return 1;
 }

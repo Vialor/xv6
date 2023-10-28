@@ -49,6 +49,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->nice = 10; // default priority
 
   release(&ptable.lock);
 
@@ -269,10 +270,21 @@ wait(void)
 }
 
 int
-nice(int n)
+nice(int inc)
 {
-  // TODO: find a way to change process priority
-  return n+1;
+  // cprintf("before %d\n", proc->nice);
+
+  int newnice = proc->nice + inc;
+  if (newnice < -19 || newnice > 20) {
+    // errno is set to indicate the error
+    return -1;
+  }
+  acquire(&ptable.lock);
+  proc->nice += inc;
+  release(&ptable.lock);
+
+  // cprintf("after %d\n", proc->nice);
+  return proc->nice;
 }
 
 //PAGEBREAK: 42
