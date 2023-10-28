@@ -7,6 +7,8 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define INITAL_SEED 1278210672
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -19,6 +21,37 @@ extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+
+int totalTickets = 0;
+int ticketWinner = 0;
+
+static const int nice_to_weight_map[40] = {
+/* -20 */ 88761, 71755, 56483, 46273, 36291,
+/* -15 */ 29154, 23254, 18705, 14949, 11916,
+/* -10 */ 9548, 7620, 6100, 4904, 3906,
+/* -5 */ 3121, 2501, 1991, 1586, 1277,
+/* 0 */ 1024, 820, 655, 526, 423,
+/* 5 */ 335, 272, 215, 172, 137,
+/* 10 */ 110, 87, 70, 56, 45,
+/* 15 */ 36, 29, 23, 18, 15,
+};
+
+// -20 <= nice < 20
+int nice_to_weight(int nice) {
+  return nice_to_weight_map[20 + nice];
+}
+
+int cur_seed = INITAL_SEED;
+int prng(int mod) // xorshift32
+{
+  int x = cur_seed;
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 5;
+  cur_seed = x;
+	return (x % mod + mod) % mod; // positive modulo
+}
+
 
 void
 pinit(void)
@@ -49,7 +82,11 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-  p->nice = 10; // default priority
+  // default nice and weight
+  p->nice = 0;
+  p->weight = nice_to_weight(0);
+  totalTickets += p->weight;
+  ticketWinner = prng(totalTickets);
 
   release(&ptable.lock);
 
@@ -280,7 +317,11 @@ nice(int inc)
     return -1;
   }
   acquire(&ptable.lock);
+  totalTickets -= proc->weight;
   proc->nice += inc;
+  proc->weight = nice_to_weight(proc->nice);
+  totalTickets += proc->weight;
+  ticketWinner = prng(totalTickets);
   release(&ptable.lock);
 
   // cprintf("after %d\n", proc->nice);
@@ -309,8 +350,16 @@ scheduler(void)
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
+      
+      if (1) { // if Lottery mode
+        ticketWinner -= p->weight;
+        if (ticketWinner >= 0){ // not winner
+          continue;
+        }
+        ticketWinner = prng(totalTickets);
+      }
 
-      // Switch to chosen process.  It is the process's job
+      // Switch to chosen process. It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       proc = p;
