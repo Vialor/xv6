@@ -5,3 +5,4 @@ services:
     volumes:
       # :ro readonly container change won't affect local files
       - .:/home/a/xv6-public/
+    command: tail -f /dev/null
