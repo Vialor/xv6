@@ -2,8 +2,6 @@
 #include "stat.h"
 #include "user.h"
 
-uint prng(uint mod);
-
 int main(void) {
   // printf(1, "Part 1 Nice\n");
   // nice(7);
@@ -16,30 +14,31 @@ int main(void) {
   //   printf(1, "%d\n", r);
   // }
 
-  printf(1, "Part 3 Lottery\n");
-  int processnice[] = {-20, 0, 19};
-  int proclstlen = sizeof(processnice)/sizeof(int);
-  // int processpids[proclstlen];
-  // int proccurind = 0;
+  // printf(1, "Part 3 Lottery\n");
+  // int processnice[] = {-20, 0, 19};
+  // int proclstlen = sizeof(processnice)/sizeof(int);
+  // // int processpids[proclstlen];
+  // // int proccurind = 0;
 
-  int j;
-  for (j=0; j < proclstlen; j++){
-    int p = fork();
+  // int j;
+  // for (j=0; j < proclstlen; j++){
+  //   int p = fork();
 
-    if (p == 0) { // child
-      int p = getpid();
-      nice(processnice[j]);
-      printf(1, "Process %d is running\n", p);
-    } else if (p > 0) { // parent
-      printf(1, "I'm merely a humble parent, I just forked %d\n", p);
-      // processpids[proccurind] = p;
-      // proccurind ++;
-    }
-  }
+  //   if (p == 0) { // child
+  //     int p = getpid();
+  //     nice(processnice[j]);
+  //     printf(1, "Process %d is running\n", p);
+  //     // readnice();
+  //   } else if (p > 0) { // parent
+  //     printf(1, "I'm merely a humble parent, I just forked %d\n", p);
+  //     // processpids[proccurind] = p;
+  //     // proccurind ++;
+  //   }
+  // }
 
-  for (j=0; j < proclstlen; j++){
-    wait();
-  }
+  // for (j=0; j < proclstlen; j++){
+  //   wait();
+  // }
   
   exit();
 }

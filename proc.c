@@ -306,6 +306,21 @@ wait(void)
   }
 }
 
+void
+readnice()
+{
+  struct proc *p;
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state != RUNNABLE)
+      continue;
+    cprintf("============================\n");
+    cprintf("%d: %d\n", p->pid, p->nice);
+    cprintf("============================\n");
+  }
+  release(&ptable.lock);
+}
+
 int
 nice(int inc)
 {
@@ -347,6 +362,8 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    // total 100
+    // (A 50), B 50
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
