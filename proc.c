@@ -6,8 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-
-#define INITAL_SEED 1278210672
+#include "myfunc.h"
 
 struct {
   struct spinlock lock;
@@ -37,19 +36,6 @@ static const int nice_to_weight_map[40] = {
 int nice_to_weight(int nice) {
   return nice_to_weight_map[20 + nice];
 }
-
-int cur_seed = INITAL_SEED;
-int prng(int mod) // xorshift32
-{
-  if (mod <= 0) return 0;
-  int x = cur_seed;
-	x ^= x << 13;
-	x ^= x >> 17;
-	x ^= x << 5;
-  cur_seed = x;
-	return (x % mod + mod) % mod; // positive modulo
-}
-
 
 void
 pinit(void)
@@ -305,15 +291,9 @@ wait(void)
 void
 readnice()
 {
-  struct proc *p;
   acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->state != RUNNABLE)
-      continue;
-    cprintf("============================\n");
-    cprintf("%d: %d\n", p->pid, p->nice);
-    cprintf("============================\n");
-  }
+  cprintf("Process %d has nice %d\n", proc->pid, proc->nice);
+  cprintf("============================\n");
   release(&ptable.lock);
 }
 
@@ -348,7 +328,10 @@ void
 scheduler(void)
 {
   struct proc *p;
+
+  #ifdef LOTTERY_SCHED
   int ticketWinner, curTicket;
+  #endif
 
   for(;;){
     // Enable interrupts on this processor.
@@ -356,48 +339,48 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    if(1){ // if Lottery mode
-      curTicket = 0;
-      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->state == RUNNABLE)
-          curTicket += p->weight;
-      }
+    #ifdef LOTTERY_SCHED
+    curTicket = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state == RUNNABLE)
+        curTicket += p->weight;
+    }
 
-      ticketWinner = prng(curTicket);
+    ticketWinner = prng(curTicket);
 
-      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->state != RUNNABLE)
-          continue;
-        ticketWinner -= p->weight;
-        if(ticketWinner <= 0){
-          proc = p;
-          switchuvm(p);
-          p->state = RUNNING;
-          swtch(&cpu->scheduler, p->context);
-          switchkvm();
-          proc = 0;
-          break;
-        }
-      }
-    } else {
-      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->state != RUNNABLE)
-          continue;
-        
-        // Switch to chosen process. It is the process's job
-        // to release ptable.lock and then reacquire it
-        // before jumping back to us.
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+      ticketWinner -= p->weight;
+      if(ticketWinner <= 0){
         proc = p;
         switchuvm(p);
         p->state = RUNNING;
         swtch(&cpu->scheduler, p->context);
         switchkvm();
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
         proc = 0;
+        break;
       }
     }
+    #else
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+      
+      // Switch to chosen process. It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+      swtch(&cpu->scheduler, p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      proc = 0;
+    }
+    #endif
     release(&ptable.lock);
   }
 }

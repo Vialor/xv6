@@ -1,0 +1,1 @@
+int prng(int mod);
