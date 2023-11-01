@@ -302,8 +302,6 @@ nice(int inc)
   proc->nice += inc;
   proc->weight = nice_to_weight(proc->nice);
   release(&ptable.lock);
-
-  // cprintf("after %d\n", proc->nice);
   return proc->nice;
 }
 
@@ -337,7 +335,7 @@ scheduler(void)
         curTicket += p->weight;
     }
 
-    ticketWinner = prng(curTicket);
+    ticketWinner = prng(curTicket) + 1;
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)

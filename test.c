@@ -2,7 +2,9 @@
 #include "stat.h"
 #include "user.h"
 #include "myfunc.h"
-#define TEST3
+#define TEST3_CASE3
+#define TOTAL_FLOPS 1000000000
+#define DIVIDED_FLOPS 50000000
 
 int main(void) {
   #ifdef TEST1
@@ -56,8 +58,8 @@ int main(void) {
   printf(1, "\n====================\n");
   #endif
 
-  #ifdef TEST3
-  printf(1, "Part 3 Lottery\n");
+  # ifdef TEST3_CASE1
+  printf(1, "Part 3 Lottery Test Case_1\n");
   int processnice[] = {-20, -10, 0, 9, 19};
   int proclstlen = sizeof(processnice)/sizeof(int);
 
@@ -69,8 +71,8 @@ int main(void) {
     if (p == 0) { // child
       int p = getpid();
       nice(processnice[j]);
-      for (k=0; k<1000000000; k++){
-        if(k % 50000000 == 0){
+      for (k=0; k < TOTAL_FLOPS; k++){
+        if(k % DIVIDED_FLOPS == 0){
           printf(1,"%d", p);
         }
       }
@@ -85,5 +87,70 @@ int main(void) {
   }
   # endif
 
+  # ifdef TEST3_CASE2
+  printf(1, "Part 3 Lottery Test Case_2\n\n");
+  int originnice[] = {0,0,0,0,0};
+  int proclstlen = sizeof(originnice)/sizeof(int);
+
+  int p;
+  int j, k;
+  for (j=0; j < proclstlen; j++){
+    p = fork();
+
+    if (p == 0) { // child
+      int p = getpid();
+      nice(originnice[j]);    
+      for (k=0; k < TOTAL_FLOPS; k++){
+        if(k % (DIVIDED_FLOPS / 2)==0){
+          printf(1,"%d", p);
+        }
+        if(k == TOTAL_FLOPS / 4){
+          nice((j-3)*4);
+        }
+      }
+      break;
+    }
+  }
+
+  if (p > 0) {
+    for (j=0; j < proclstlen; j++){
+      wait();
+    }
+    printf(1, "\n");
+  }
+  # endif
+
+  # ifdef TEST3_CASE3
+  printf(1, "Part 3 Lottery Test Case_3\n\n");
+  int originnice[] = {5, 5, -20};
+  int proclstlen = sizeof(originnice)/sizeof(int);
+
+  int p;
+  int j, k;
+  for (j=0; j < proclstlen; j++){
+    p = fork();
+
+    if (p == 0) { // child
+      int p = getpid();
+      nice(originnice[j]);
+      for (k=1; k <= TOTAL_FLOPS; k++){
+        if(k % (DIVIDED_FLOPS / 2) == 0){
+          printf(1,"%d", p);
+        }
+        if(k % (TOTAL_FLOPS / 10) == 0 && j == 2){
+          nice(4);
+        }
+      }
+      break;
+    }
+  }
+
+  if (p > 0) {
+    for (j=0; j < proclstlen; j++){
+      wait();
+    }
+    printf(1, "\n");
+  }
+  # endif
   exit();
 }
