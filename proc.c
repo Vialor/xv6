@@ -288,22 +288,13 @@ wait(void)
   }
 }
 
-void
-readnice()
-{
-  acquire(&ptable.lock);
-  cprintf("Process %d has nice %d\n", proc->pid, proc->nice);
-  cprintf("============================\n");
-  release(&ptable.lock);
-}
-
 int
 nice(int inc)
 {
   // cprintf("before %d\n", proc->nice);
 
   int newnice = proc->nice + inc;
-  if (newnice < -19 || newnice > 20) {
+  if (newnice < -20 || newnice > 19) {
     // errno is set to indicate the error
     return -1;
   }

@@ -95,5 +95,5 @@ sys_nice(void) {
   int n;
   if(argint(0, &n) < 0)
     return -1;
-  return 1;
+  return nice(n);
 }

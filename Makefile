@@ -81,7 +81,7 @@ CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb 
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 
 # Schedulers
-CFLAGS += -D ROUNDROBIN_SCHED
+CFLAGS += -D LOTTERY_SCHED
 # LOTTERY_SCHED, ROUNDROBIN_SCHED (default)
 
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
