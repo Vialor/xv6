@@ -22,9 +22,6 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
-int totalTickets = 0;
-int ticketWinner = 0;
-
 static const int nice_to_weight_map[40] = {
 /* -20 */ 88761, 71755, 56483, 46273, 36291,
 /* -15 */ 29154, 23254, 18705, 14949, 11916,
@@ -44,6 +41,7 @@ int nice_to_weight(int nice) {
 int cur_seed = INITAL_SEED;
 int prng(int mod) // xorshift32
 {
+  if (mod <= 0) return 0;
   int x = cur_seed;
 	x ^= x << 13;
 	x ^= x >> 17;
@@ -85,8 +83,6 @@ found:
   // default nice and weight
   p->nice = 0;
   p->weight = nice_to_weight(0);
-  totalTickets += p->weight;
-  ticketWinner = prng(totalTickets);
 
   release(&ptable.lock);
 
@@ -332,11 +328,8 @@ nice(int inc)
     return -1;
   }
   acquire(&ptable.lock);
-  totalTickets -= proc->weight;
   proc->nice += inc;
   proc->weight = nice_to_weight(proc->nice);
-  totalTickets += proc->weight;
-  ticketWinner = prng(totalTickets);
   release(&ptable.lock);
 
   // cprintf("after %d\n", proc->nice);
@@ -355,6 +348,7 @@ void
 scheduler(void)
 {
   struct proc *p;
+  int ticketWinner, curTicket;
 
   for(;;){
     // Enable interrupts on this processor.
@@ -362,35 +356,49 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    // total 100
-    // (A 50), B 50
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
-      
-      if (1) { // if Lottery mode
-        ticketWinner -= p->weight;
-        if (ticketWinner >= 0){ // not winner
-          continue;
-        }
-        ticketWinner = prng(totalTickets);
+    if(1){ // if Lottery mode
+      curTicket = 0;
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state == RUNNABLE)
+          curTicket += p->weight;
       }
 
-      // Switch to chosen process. It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
-      swtch(&cpu->scheduler, p->context);
-      switchkvm();
+      ticketWinner = prng(curTicket);
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      proc = 0;
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE)
+          continue;
+        ticketWinner -= p->weight;
+        if(ticketWinner <= 0){
+          proc = p;
+          switchuvm(p);
+          p->state = RUNNING;
+          swtch(&cpu->scheduler, p->context);
+          switchkvm();
+          proc = 0;
+          break;
+        }
+      }
+    } else {
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE)
+          continue;
+        
+        // Switch to chosen process. It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        proc = p;
+        switchuvm(p);
+        p->state = RUNNING;
+        swtch(&cpu->scheduler, p->context);
+        switchkvm();
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        proc = 0;
+      }
     }
     release(&ptable.lock);
-
   }
 }
 
