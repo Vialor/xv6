@@ -2,7 +2,7 @@
 #include "stat.h"
 #include "user.h"
 #include "myfunc.h"
-#define TEST3_CASE1
+#define TEST1
 #define TOTAL_FLOPS 1000000000
 #define DIVIDED_FLOPS 50000000
 
@@ -37,6 +37,20 @@ int main(void) {
   curnice = nice(11);
   if(curnice != -1)
     printf(1, "Error: Nice value out of range, should be invalid\n");
+  else
+    printf(1, "Pass\n");
+  
+  printf(1, "5. Change Process's nice to 19 (increment by 10)\n");
+  curnice = nice(10);
+  if(curnice != 19)
+    printf(1, "Error: Nice value is not 19\n");
+  else
+    printf(1, "Pass\n");
+
+  printf(1, "6. Change Process's nice to -20 (idecrement by 39)\n");
+  curnice = nice(-39);
+  if(curnice != -20)
+    printf(1, "Error: Nice value is not -20\n");
   else
     printf(1, "Pass\n");
   # endif
