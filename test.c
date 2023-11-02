@@ -2,7 +2,7 @@
 #include "stat.h"
 #include "user.h"
 #include "myfunc.h"
-#define TEST3_CASE3
+#define TEST3_CASE1
 #define TOTAL_FLOPS 1000000000
 #define DIVIDED_FLOPS 50000000
 
@@ -122,7 +122,7 @@ int main(void) {
 
   # ifdef TEST3_CASE3
   printf(1, "Part 3 Lottery Test Case_3\n\n");
-  int originnice[] = {5, 5, -20};
+  int originnice[] = {0, -10};
   int proclstlen = sizeof(originnice)/sizeof(int);
 
   int p;
@@ -137,8 +137,8 @@ int main(void) {
         if(k % (DIVIDED_FLOPS / 2) == 0){
           printf(1,"%d", p);
         }
-        if(k % (TOTAL_FLOPS / 10) == 0 && j == 2){
-          nice(4);
+        if(k % (TOTAL_FLOPS / 10) == 0 && j == 1){
+          nice(2);
         }
       }
       break;
